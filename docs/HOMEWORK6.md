@@ -1,5 +1,10 @@
 # Чеклист требований — Homework 6 (Server Data, Caching & Firebase Authentication)
 
+> **Обновление (homework 7).** Слой данных с тех пор изменился: каталог вынесен в статические
+> JSON (`public/api/`, генерируются `scripts/build-api.mjs`), `src/api/storage.js` заменён на
+> `src/api/overlay.js` — локальные правки поверх каталога. Всё остальное из этого чеклиста
+> осталось на месте; подробности — в [`HOMEWORK7.md`](HOMEWORK7.md).
+
 Источник: `06.react-homework-auth.pdf`. Проект продолжает midterm (`FleetDesk`): весь прежний
 функционал сохранён, чеклист midterm — в `docs/REQUIREMENTS.md`.
 После тире — где реализовано.
