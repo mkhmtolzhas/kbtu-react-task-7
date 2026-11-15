@@ -1,0 +1,203 @@
+/* Progressive-web-app surfaces: connection indicator, update prompt, cached-data
+   notice and the in-app offline page. */
+
+/* Connection indicator ---------------------------------------------------- */
+
+.connection-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.connection-status__dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--color-success);
+}
+
+.connection-status--checking .connection-status__dot {
+  background: var(--color-warning);
+}
+
+.connection-status--offline {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.connection-status--offline:hover {
+  text-decoration: none;
+}
+
+.connection-status--offline .connection-status__dot {
+  background: var(--color-danger);
+}
+
+/* The label is noise while everything works; offline it is the whole point. */
+.connection-status--online .connection-status__label,
+.connection-status--checking .connection-status__label {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .connection-status--online .connection-status__label,
+  .connection-status--checking .connection-status__label {
+    display: inline;
+  }
+}
+
+/* Cached-data notice ------------------------------------------------------ */
+
+.cache-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--gutter);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.cache-banner__dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Update prompt ----------------------------------------------------------- */
+
+.update-toast {
+  position: fixed;
+  z-index: 40;
+  inset-inline: var(--gutter);
+  bottom: calc(var(--gutter) + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  max-width: 560px;
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.update-toast__text {
+  flex: 1 1 220px;
+  min-width: 0;
+  font-size: 0.9rem;
+}
+
+.update-toast__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Offline page ------------------------------------------------------------ */
+
+.offline-page {
+  justify-content: center;
+}
+
+.offline-page__card {
+  padding: var(--space-5) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.offline-page__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--space-3);
+  border-radius: 50%;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.offline-page__title {
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.offline-page__text {
+  max-width: 48ch;
+  margin: var(--space-2) auto var(--space-4);
+  color: var(--color-text-muted);
+}
+
+.offline-page__list {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 44ch;
+  margin: 0 auto var(--space-5);
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  list-style: none;
+  text-align: start;
+}
+
+.offline-page__list li {
+  position: relative;
+  padding-inline-start: var(--space-4);
+}
+
+.offline-page__list li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.offline-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.offline-page__actions .button {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.offline-page__checked {
+  margin-top: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+@media (min-width: 560px) {
+  .offline-page__card {
+    padding: var(--space-6);
+  }
+
+  .offline-page__actions .button {
+    flex: 0 0 auto;
+  }
+}

@@ -2,10 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="FleetDesk — dispatch dashboard for a car-sharing fleet in Almaty." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="FleetDesk — installable dispatch dashboard for a car-sharing fleet in Almaty. Works offline." />
     <meta name="theme-color" content="#0f766e" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+
+    <!-- Progressive web app: the manifest makes the browser offer to install it. -->
+    <link rel="manifest" href="./manifest.webmanifest" />
+
+    <!-- iOS has no manifest-driven install: it needs its own icon and metas,
+         and the user adds the app from the Share menu. -->
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon-180.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FleetDesk" />
+
     <title>FleetDesk — Almaty car-sharing dispatch</title>
   </head>
   <body>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f766e" />
+    <title>Offline — FleetDesk</title>
+    <!--
+      The service worker's last resort: shown when a page is requested, there is no
+      connection and the application shell itself is not in the cache. It must not
+      depend on the bundle in any way — no script, no stylesheet, no font.
+      The in-app version of this screen lives at #/offline.
+    -->
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --accent: #0f766e;
+        --border: #e2e8f0;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b1120;
+          --surface: #111827;
+          --text: #e2e8f0;
+          --muted: #94a3b8;
+          --accent: #2dd4bf;
+          --border: #1f2937;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      main {
+        width: 100%;
+        max-width: 420px;
+        padding: 28px 24px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--surface);
+        text-align: center;
+      }
+      svg { width: 56px; height: 56px; }
+      h1 { margin: 12px 0 8px; font-size: 1.35rem; }
+      p { margin: 0 0 20px; color: var(--muted); }
+      button {
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 16px;
+        border: 0;
+        border-radius: 10px;
+        background: var(--accent);
+        color: #fff;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      a { display: inline-block; margin-top: 16px; color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#0f766e" />
+        <path d="M7 19.5 9.3 13a2 2 0 0 1 1.9-1.4h9.6a2 2 0 0 1 1.9 1.4l2.3 6.5V23a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-1h-11v1a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1z" fill="#fff" />
+        <circle cx="11" cy="19" r="1.4" fill="#0f766e" />
+        <circle cx="21" cy="19" r="1.4" fill="#0f766e" />
+      </svg>
+      <h1>No connection</h1>
+      <p>
+        FleetDesk could not reach the network, and this page has not been saved on
+        this device yet. Pages you have already opened stay available offline.
+      </p>
+      <button type="button" onclick="location.reload()">Retry connection</button>
+      <a href="./#/">Back to FleetDesk</a>
+    </main>
+  </body>
+</html>

@@ -51,7 +51,21 @@ export default defineConfig([
     rules: { 'no-restricted-properties': 'off' },
   },
   {
-    files: ['*.config.js'],
+    // The service worker is a different runtime: no window, no document, and
+    // three identifiers the build substitutes before the file is emitted.
+    files: ['src/sw/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.serviceworker,
+        __PRECACHE_MANIFEST__: 'readonly',
+        __SW_CONTRACT__: 'readonly',
+      },
+    },
+    rules: { 'no-restricted-properties': 'off' },
+  },
+  {
+    // Build tooling runs in Node, not in a browser.
+    files: ['*.config.js', 'plugins/**/*.js', 'scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
   },
 ]);
