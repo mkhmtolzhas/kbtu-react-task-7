@@ -38,3 +38,16 @@ export function formatDaysAgo(days) {
 export function pluralize(count, singular, plural = `${singular}s`) {
   return `${numberFormatter.format(count)} ${count === 1 ? singular : plural}`;
 }
+
+const timeFormatter = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+/**
+ * When a cached answer was stored, phrased for a sentence: "at 14:32" for today,
+ * the full date and time for anything older.
+ */
+export function formatCachedAt(isoDateTime) {
+  const stored = new Date(isoDateTime);
+  if (Number.isNaN(stored.getTime())) return '';
+  const isToday = stored.toDateString() === new Date().toDateString();
+  return isToday ? `at ${timeFormatter.format(stored)}` : `on ${dateTimeFormatter.format(stored)}`;
+}

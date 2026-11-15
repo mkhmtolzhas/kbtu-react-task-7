@@ -17,7 +17,7 @@ export default function NewVehiclePage() {
   return (
     <div className="page page--narrow">
       <nav className="breadcrumbs" aria-label="Breadcrumb">
-        <Link to="/">
+        <Link to="/vehicles">
           <span aria-hidden="true">← </span>Fleet overview
         </Link>
       </nav>
@@ -29,7 +29,7 @@ export default function NewVehiclePage() {
           </p>
         </div>
       </header>
-      <VehicleForm onSubmit={handleCreate} onCancel={() => navigate('/')} />
+      <VehicleForm onSubmit={handleCreate} onCancel={() => navigate('/vehicles')} />
     </div>
   );
 }

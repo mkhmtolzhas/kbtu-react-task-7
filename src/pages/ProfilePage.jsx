@@ -34,7 +34,7 @@ export default function ProfilePage() {
   return (
     <div className="page page--narrow">
       <nav className="breadcrumbs" aria-label="Breadcrumb">
-        <Link to="/">
+        <Link to="/vehicles">
           <span aria-hidden="true">← </span>Fleet overview
         </Link>
       </nav>

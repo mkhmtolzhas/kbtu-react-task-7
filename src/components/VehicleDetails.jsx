@@ -29,7 +29,7 @@ export default function VehicleDetails({ id, tripMinutes, onTripMinutesChange })
   if (isError && error.status === 404) {
     return (
       <EmptyState title="Vehicle not found" message={`There is no vehicle with id “${id}” in the fleet.`}>
-        <Link className="button button--primary" to="/">Back to fleet</Link>
+        <Link className="button button--primary" to="/vehicles">Back to fleet</Link>
       </EmptyState>
     );
   }
