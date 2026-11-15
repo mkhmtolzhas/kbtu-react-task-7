@@ -29,7 +29,10 @@
      overflow when a label is long or the font is scaled up. */
   min-height: var(--header-height);
   margin: 0 auto;
-  padding: 0 var(--gutter);
+  /* env(safe-area-inset-*): an installed app on a phone with a notch is laid out
+     edge to edge, so in landscape the cutout would otherwise cover the brand. */
+  padding: 0 calc(var(--gutter) + env(safe-area-inset-right, 0px))
+             0 calc(var(--gutter) + env(safe-area-inset-left, 0px));
 }
 
 .app-header__tools {
@@ -103,7 +106,8 @@
   display: none;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-3) var(--gutter) var(--space-4);
+  padding: var(--space-3) calc(var(--gutter) + env(safe-area-inset-right, 0px))
+           var(--space-4) calc(var(--gutter) + env(safe-area-inset-left, 0px));
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
   box-shadow: var(--shadow-md);
@@ -201,11 +205,12 @@
   width: 100%;
   max-width: var(--content-width);
   margin: 0 auto;
-  padding: var(--space-5) var(--gutter) var(--space-7);
+  padding: var(--space-5) calc(var(--gutter) + env(safe-area-inset-right, 0px))
+           var(--space-7) calc(var(--gutter) + env(safe-area-inset-left, 0px));
 }
 
 .app-footer {
-  padding: var(--space-5) var(--gutter);
+  padding: var(--space-5) var(--gutter) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--color-border);
   color: var(--color-text-muted);
   font-size: 0.85rem;

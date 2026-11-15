@@ -13,8 +13,12 @@
     <!-- iOS has no manifest-driven install: it needs its own icon and metas,
          and the user adds the app from the Share menu. -->
     <link rel="apple-touch-icon" href="./icons/apple-touch-icon-180.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- "default", not "black-translucent": a translucent status bar draws white
+         text over the page, and this header is near-white in the light theme.
+         With "default" iOS keeps the status bar above the page instead. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="FleetDesk" />
 
     <title>FleetDesk — Almaty car-sharing dispatch</title>
