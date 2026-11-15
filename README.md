@@ -12,6 +12,8 @@ validation and server-side errors. A **hand-written service worker** caches the 
 that catalogue, so the app starts and keeps working without a connection; **TanStack Query** caches in
 memory on top of it, and **Firebase Authentication** decides who may change the fleet.
 
+**Live:** https://kbtu-react-task-7.vercel.app
+
 > Homework 7 for the React course (KBTU): progressive web app — manifest, service worker lifecycle,
 > two runtime caching strategies, an offline page and a fully usable mobile interface.
 > Built on top of homework 6 and the midterm project; every earlier feature is kept.
