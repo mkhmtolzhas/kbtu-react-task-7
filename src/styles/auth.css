@@ -70,7 +70,7 @@
 /* Small buttons, used in the navbar and in confirmation rows */
 
 .button--sm {
-  min-height: 32px;
+  min-height: var(--control-height-sm);
   padding: 4px 12px;
   font-size: 0.875rem;
 }

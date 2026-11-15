@@ -49,6 +49,12 @@
 
   --content-width: 1200px;
   --gutter: 16px;
+
+  /* Touch targets. 44px is the smallest size a finger hits reliably, so every
+     control is at least this tall; a mouse gets slightly tighter controls. */
+  --control-height: 44px;
+  --control-height-sm: 44px;
+  --header-height: 60px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -90,5 +96,13 @@
 @media (min-width: 768px) {
   :root {
     --gutter: 24px;
+  }
+}
+
+/* A mouse or trackpad does not need 44px targets; a finger does. */
+@media (pointer: fine) {
+  :root {
+    --control-height: 40px;
+    --control-height-sm: 32px;
   }
 }

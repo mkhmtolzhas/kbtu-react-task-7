@@ -1,7 +1,10 @@
 .app {
   display: flex;
   flex-direction: column;
+  /* svh is the visible viewport, so the layout does not jump when a mobile
+     browser hides its address bar. vh stays as the fallback. */
   min-height: 100vh;
+  min-height: 100svh;
 }
 
 /* Header */
@@ -16,14 +19,110 @@
 }
 
 .app-header__inner {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-3);
   max-width: var(--content-width);
-  height: 60px;
+  /* min-height, not height: the row must be allowed to grow rather than
+     overflow when a label is long or the font is scaled up. */
+  min-height: var(--header-height);
   margin: 0 auto;
   padding: 0 var(--gutter);
+}
+
+.app-header__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-inline-start: auto;
+}
+
+/* The menu button, shown only while the navigation is collapsed. */
+
+.nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height);
+  height: var(--control-height);
+  flex: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.nav-toggle__bars,
+.nav-toggle__bars::before,
+.nav-toggle__bars::after {
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.nav-toggle__bars {
+  position: relative;
+}
+
+.nav-toggle__bars::before,
+.nav-toggle__bars::after {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+
+.nav-toggle__bars::before { top: -6px; }
+.nav-toggle__bars::after { top: 6px; }
+
+/* Open: the bars become a cross, so the button says what it will do next. */
+.nav-toggle[aria-expanded='true'] .nav-toggle__bars {
+  background: transparent;
+}
+
+.nav-toggle[aria-expanded='true'] .nav-toggle__bars::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.nav-toggle[aria-expanded='true'] .nav-toggle__bars::after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+
+/* The collapsed navigation: a panel under the header on small screens, an
+   ordinary row of links from 768px up. */
+
+.app-menu {
+  position: absolute;
+  top: 100%;
+  inset-inline: 0;
+  z-index: 20;
+  display: none;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--gutter) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.app-menu--open {
+  display: flex;
+}
+
+.app-menu:focus-visible {
+  outline: none;
+}
+
+.nav-backdrop {
+  position: fixed;
+  inset: var(--header-height) 0 0;
+  z-index: 9;
+  border: 0;
+  background: rgb(15 27 42 / 35%);
 }
 
 .brand {
@@ -69,11 +168,14 @@
 
 .app-nav {
   display: flex;
+  flex-direction: column;
   gap: var(--space-1);
-  margin-inline-start: auto;
 }
 
 .app-nav__link {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-height);
   padding: 8px 12px;
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);
@@ -140,6 +242,25 @@
   gap: var(--space-4);
 }
 
+/* min-width: 0 lets the text block shrink instead of pushing the action out
+   of the row — the usual cause of horizontal scrolling on a phone. */
+.page-header__text {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.page-header > .button,
+.page-header > a.button {
+  flex: 1 1 auto;
+}
+
+@media (min-width: 560px) {
+  .page-header > .button,
+  .page-header > a.button {
+    flex: 0 0 auto;
+  }
+}
+
 .page-header__title {
   font-size: 1.6rem;
   line-height: 1.2;
@@ -172,5 +293,35 @@
 @media (min-width: 768px) {
   .page-header__title {
     font-size: 1.9rem;
+  }
+
+  /* Enough room for the full navigation: no button, no panel, no backdrop. */
+  .nav-toggle,
+  .nav-backdrop {
+    display: none;
+  }
+
+  .app-menu {
+    position: static;
+    z-index: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-3);
+    order: 1;
+    margin-inline-start: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .app-header__tools {
+    order: 2;
+    margin-inline-start: 0;
+  }
+
+  .app-nav {
+    flex-direction: row;
   }
 }
