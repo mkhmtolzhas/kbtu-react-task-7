@@ -1,4 +1,14 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, onlineManager } from '@tanstack/react-query';
+import { getConnectivity, subscribeConnectivity } from '../services/connectivityService.js';
+
+// React Query decides "are we online?" from navigator.onLine, which lies on
+// captive portals and dead uplinks. Point it at the probe-backed service instead:
+// queries then pause offline rather than burning their retries, and resume on a
+// genuine recovery.
+onlineManager.setEventListener((setOnline) => {
+  setOnline(getConnectivity().isOnline);
+  return subscribeConnectivity(() => setOnline(getConnectivity().isOnline));
+});
 
 // How long a cached answer is served without asking the API again.
 export const STALE_TIME_MS = 60_000;
@@ -16,6 +26,11 @@ export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
+        // 'online' (the default) would pause every query while offline and the
+        // app would hang on a spinner. 'offlineFirst' lets the request go out,
+        // where the service worker answers it from the cache; only a genuine
+        // miss ends up as an error.
+        networkMode: 'offlineFirst',
         staleTime: STALE_TIME_MS,
         gcTime: GC_TIME_MS,
         retry: shouldRetry,
@@ -25,7 +40,8 @@ export function createQueryClient() {
         refetchOnWindowFocus: true,
         refetchOnReconnect: true,
       },
-      mutations: { retry: 0 },
+      // Changes are written to this browser's overlay, so they work offline too.
+      mutations: { retry: 0, networkMode: 'always' },
     },
   });
 }

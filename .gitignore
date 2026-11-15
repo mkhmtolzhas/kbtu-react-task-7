@@ -5,6 +5,9 @@ node_modules
 dist
 dist-ssr
 
+# generated public API (npm run api regenerates it from src/api/seed.js)
+public/api
+
 # logs
 *.log
 npm-debug.log*
@@ -29,3 +32,6 @@ npm-debug.log*
 
 # assignment brief (kept locally, not published with the app)
 *.pdf
+
+# local agent skills (not part of the project)
+.claude

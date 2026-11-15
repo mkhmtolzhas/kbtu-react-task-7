@@ -3,12 +3,22 @@ import {
   PAGE_SIZES,
   SORT_FIELDS,
   STATUS_LABELS,
+  VEHICLE_CLASSES,
   VEHICLE_STATUSES,
 } from '../utils/constants.js';
 import { validateVehicle } from '../utils/validation.js';
-import { isLowFuel, normalizePlate, statusesForClass } from '../utils/vehicle.js';
+import { isLowFuel, isServiceOverdue, normalizePlate, statusesForClass } from '../utils/vehicle.js';
+import { fleetUrl, vehicleUrl } from './endpoints.js';
+import { fetchJson } from './http.js';
 import { ApiError, simulateNetwork } from './network.js';
-import { loadDb, saveDb } from './storage.js';
+import {
+  isDeleted,
+  mergeFleet,
+  overlayVehicle,
+  removeVehicle,
+  saveVehicle,
+  takeNextId,
+} from './overlay.js';
 
 const SORTABLE_FIELDS = SORT_FIELDS.map((field) => field.value);
 const HISTORY_LIMIT = 10;
@@ -16,6 +26,19 @@ const MAX_PAGE_SIZE = Math.max(...PAGE_SIZES);
 
 // The API hands out copies so the UI can never mutate the "database" by accident.
 const clone = (value) => structuredClone(value);
+
+/**
+ * The fleet: the public catalogue fetched over HTTP, with this browser's own
+ * changes merged on top.
+ *
+ * The request goes through the service worker, which answers it
+ * stale-while-revalidate — so a visitor who has been here before gets the list
+ * instantly and keeps it when the connection is gone.
+ */
+async function loadFleet({ signal } = {}) {
+  const { data, meta } = await fetchJson(fleetUrl(), { signal });
+  return { vehicles: mergeFleet(data.vehicles), catalogueCount: data.count, meta };
+}
 
 function matchesSearch(vehicle, search) {
   const tokens = search.toLowerCase().split(/\s+/).filter(Boolean);
@@ -41,11 +64,12 @@ function compareVehicles(sortBy, sortDir) {
 }
 
 /**
- * Server-side search, filtering, sorting and pagination.
- * @returns {Promise<{ items: object[], total: number, page: number, pageSize: number }>}
+ * Search, filtering, sorting and pagination of the fleet.
+ * @returns {Promise<{ items: object[], total: number, page: number, pageSize: number, meta: object }>}
  */
 export async function listVehicles(params = {}, { signal } = {}) {
   await simulateNetwork(signal);
+  const { vehicles, meta } = await loadFleet({ signal });
 
   const {
     search = '',
@@ -59,7 +83,7 @@ export async function listVehicles(params = {}, { signal } = {}) {
   const pageSize = Math.min(Math.max(1, Math.trunc(Number(params.pageSize) || PAGE_SIZES[0])), MAX_PAGE_SIZE);
   const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'plate';
 
-  const filtered = loadDb().vehicles.filter((vehicle) =>
+  const filtered = vehicles.filter((vehicle) =>
     (status === 'all' || vehicle.status === status)
     && (vehicleClass === 'all' || vehicle.class === vehicleClass)
     && (district === 'all' || vehicle.district === district)
@@ -73,32 +97,86 @@ export async function listVehicles(params = {}, { signal } = {}) {
     total: filtered.length,
     page,
     pageSize,
+    meta,
   };
 }
 
+/**
+ * One vehicle — the "details" request of the public API.
+ *
+ * A vehicle the dispatcher created or edited lives only in this browser, so it is
+ * answered from the overlay. Everything else is fetched by id; if that request
+ * cannot be answered (offline, and this particular file was never cached), the
+ * vehicle is taken from the catalogue, which usually *is* cached.
+ */
 export async function getVehicle(id, { signal } = {}) {
   await simulateNetwork(signal);
-  const vehicle = loadDb().vehicles.find((item) => item.id === id);
-  if (!vehicle) throw new ApiError(`Vehicle "${id}" was not found.`, { status: 404 });
-  return clone(vehicle);
+
+  if (isDeleted(id)) throw new ApiError(`Vehicle "${id}" was not found.`, { status: 404 });
+
+  const local = overlayVehicle(id);
+  if (local) return clone(local);
+
+  try {
+    const { data } = await fetchJson(vehicleUrl(id), { signal });
+    return clone(data);
+  } catch (error) {
+    if (error.status === 404) {
+      throw new ApiError(`Vehicle "${id}" was not found.`, { status: 404 });
+    }
+    const { vehicles } = await loadFleet({ signal });
+    const vehicle = vehicles.find((item) => item.id === id);
+    if (!vehicle) throw error;
+    return clone(vehicle);
+  }
 }
 
-/** Counts per status for the whole fleet (feeds the summary tiles on the list page). */
-export async function getFleetStats({ signal } = {}) {
+/**
+ * Fleet-wide numbers for the summary tiles and the dashboard.
+ * `district` narrows every number to one district without touching the list view.
+ */
+export async function getFleetStats(params = {}, { signal } = {}) {
   await simulateNetwork(signal);
-  const { vehicles } = loadDb();
+  const { vehicles, meta } = await loadFleet({ signal });
+
+  const district = params.district ?? 'all';
+  const scope = district === 'all'
+    ? vehicles
+    : vehicles.filter((vehicle) => vehicle.district === district);
+
   const byStatus = Object.fromEntries(VEHICLE_STATUSES.map((status) => [status, 0]));
+  const byClass = Object.fromEntries(VEHICLE_CLASSES.map((vehicleClass) => [vehicleClass, 0]));
+  const byDistrict = {};
   let lowFuel = 0;
-  for (const vehicle of vehicles) {
+  let serviceOverdue = 0;
+  let priceSum = 0;
+
+  for (const vehicle of scope) {
     byStatus[vehicle.status] += 1;
+    byClass[vehicle.class] += 1;
+    byDistrict[vehicle.district] = (byDistrict[vehicle.district] ?? 0) + 1;
     if (isLowFuel(vehicle.fuelLevel)) lowFuel += 1;
+    if (isServiceOverdue(vehicle.lastServiceDate)) serviceOverdue += 1;
+    priceSum += vehicle.pricePerMinute;
   }
-  return { total: vehicles.length, byStatus, lowFuel };
+
+  return {
+    total: scope.length,
+    fleetTotal: vehicles.length,
+    byStatus,
+    byClass,
+    byDistrict,
+    lowFuel,
+    serviceOverdue,
+    averagePricePerMinute: scope.length === 0 ? 0 : Math.round(priceSum / scope.length),
+    district,
+    meta,
+  };
 }
 
 export async function createVehicle(data) {
   await simulateNetwork();
-  const db = loadDb();
+  const { vehicles, catalogueCount } = await loadFleet();
 
   const fieldErrors = validateVehicle(data);
   if (Object.keys(fieldErrors).length > 0) {
@@ -106,7 +184,7 @@ export async function createVehicle(data) {
   }
 
   const plate = normalizePlate(data.plate);
-  if (db.vehicles.some((vehicle) => vehicle.plate === plate)) {
+  if (vehicles.some((vehicle) => vehicle.plate === plate)) {
     throw new ApiError('A vehicle with this plate already exists.', {
       status: 409,
       fieldErrors: { plate: `${plate} is already registered in the fleet.` },
@@ -114,7 +192,7 @@ export async function createVehicle(data) {
   }
 
   const vehicle = {
-    id: `veh-${String(db.nextId).padStart(4, '0')}`,
+    id: takeNextId(catalogueCount),
     plate,
     brand: data.brand,
     model: data.model.trim(),
@@ -130,14 +208,14 @@ export async function createVehicle(data) {
     statusHistory: [{ status: data.status, changedAt: new Date().toISOString() }],
   };
 
-  saveDb({ ...db, nextId: db.nextId + 1, vehicles: [...db.vehicles, vehicle] });
+  saveVehicle(vehicle);
   return clone(vehicle);
 }
 
 export async function updateVehicleStatus(id, status) {
   await simulateNetwork();
-  const db = loadDb();
-  const vehicle = db.vehicles.find((item) => item.id === id);
+  const { vehicles } = await loadFleet();
+  const vehicle = vehicles.find((item) => item.id === id);
 
   if (!vehicle) throw new ApiError(`Vehicle "${id}" was not found.`, { status: 404 });
   if (!statusesForClass(vehicle.class).includes(status)) {
@@ -162,17 +240,14 @@ export async function updateVehicleStatus(id, status) {
     ].slice(0, HISTORY_LIMIT),
   };
 
-  saveDb({
-    ...db,
-    vehicles: db.vehicles.map((item) => (item.id === id ? updated : item)),
-  });
+  saveVehicle(updated);
   return clone(updated);
 }
 
 export async function deleteVehicle(id) {
   await simulateNetwork();
-  const db = loadDb();
-  const vehicle = db.vehicles.find((item) => item.id === id);
+  const { vehicles } = await loadFleet();
+  const vehicle = vehicles.find((item) => item.id === id);
 
   if (!vehicle) throw new ApiError(`Vehicle "${id}" was not found.`, { status: 404 });
   if (vehicle.status === 'rented') {
@@ -181,6 +256,6 @@ export async function deleteVehicle(id) {
     });
   }
 
-  saveDb({ ...db, vehicles: db.vehicles.filter((item) => item.id !== id) });
+  removeVehicle(id);
   return { id };
 }

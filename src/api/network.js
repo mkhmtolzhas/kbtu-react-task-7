@@ -2,11 +2,14 @@ const MIN_DELAY_MS = 400;
 const MAX_DELAY_MS = 900;
 
 export class ApiError extends Error {
-  constructor(message, { status = 500, fieldErrors = null } = {}) {
+  constructor(message, { status = 500, fieldErrors = null, offline = false } = {}) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.fieldErrors = fieldErrors;
+    // `true` when the request never reached the network: the UI offers
+    // "retry connection" instead of a generic server-error message.
+    this.offline = offline;
   }
 }
 

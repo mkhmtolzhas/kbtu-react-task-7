@@ -1,11 +1,14 @@
 {
   "name": "fleetdesk",
   "private": true,
-  "version": "2.0.0",
-  "description": "FleetDesk — car-sharing fleet dispatch dashboard (React SPA, simulated API, TanStack Query caching, Firebase Auth)",
+  "version": "3.0.0",
+  "description": "FleetDesk \u2014 installable, offline-capable PWA for car-sharing fleet dispatch (React SPA, static JSON API, hand-written service worker, Firebase Auth)",
   "type": "module",
   "scripts": {
+    "api": "node scripts/build-api.mjs",
+    "predev": "npm run api",
     "dev": "vite",
+    "prebuild": "npm run api",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --max-warnings 0"

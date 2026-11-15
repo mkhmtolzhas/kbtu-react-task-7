@@ -5,7 +5,7 @@
  *   ['vehicles']                                  → everything about vehicles
  *   ['vehicles', 'list', { page, search, … }]     → one page of the list
  *   ['vehicles', 'detail', 'veh-0007']            → one vehicle
- *   ['vehicles', 'stats']                         → the summary tiles
+ *   ['vehicles', 'stats', { district }]            → the summary tiles / dashboard
  *   ['vehicles', 'similar', { class, district }]  → replacement candidates
  *
  * Query parameters live *inside* the key: different filters are different cache
@@ -17,6 +17,7 @@ export const vehicleKeys = {
   list: (params) => [...vehicleKeys.lists(), params],
   details: () => [...vehicleKeys.all, 'detail'],
   detail: (id) => [...vehicleKeys.details(), id],
-  stats: () => [...vehicleKeys.all, 'stats'],
+  statsAll: () => [...vehicleKeys.all, 'stats'],
+  stats: (params = {}) => [...vehicleKeys.statsAll(), params],
   similar: (params) => [...vehicleKeys.all, 'similar', params],
 };

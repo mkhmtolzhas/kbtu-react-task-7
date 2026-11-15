@@ -39,11 +39,15 @@ export function useVehicleQuery(id) {
   });
 }
 
-/** Counters behind the summary tiles: cheap, shared by every list view. */
-export function useFleetStatsQuery() {
+/**
+ * Counters behind the summary tiles and the dashboard.
+ * `params.district` narrows every number to one district; it is part of the key,
+ * so switching districts back and forth is answered from the cache.
+ */
+export function useFleetStatsQuery(params = {}) {
   return useQuery({
-    queryKey: vehicleKeys.stats(),
-    queryFn: ({ signal }) => getFleetStats({ signal }),
+    queryKey: vehicleKeys.stats(params),
+    queryFn: ({ signal }) => getFleetStats(params, { signal }),
     staleTime: STATS_STALE_TIME_MS,
   });
 }
@@ -91,7 +95,7 @@ export function useCreateVehicleMutation() {
       queryClient.setQueryData(vehicleKeys.detail(created.id), created);
       // Any cached page of any filter combination may now be missing a vehicle.
       queryClient.invalidateQueries({ queryKey: vehicleKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: vehicleKeys.stats() });
+      queryClient.invalidateQueries({ queryKey: vehicleKeys.statsAll() });
       queryClient.invalidateQueries({ queryKey: [...vehicleKeys.all, 'similar'] });
     },
   });
@@ -108,7 +112,7 @@ export function useUpdateStatusMutation(vehicleId) {
     onSuccess: (updated) => {
       queryClient.setQueryData(vehicleKeys.detail(updated.id), updated);
       queryClient.invalidateQueries({ queryKey: vehicleKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: vehicleKeys.stats() });
+      queryClient.invalidateQueries({ queryKey: vehicleKeys.statsAll() });
       queryClient.invalidateQueries({ queryKey: [...vehicleKeys.all, 'similar'] });
     },
   });
@@ -123,7 +127,7 @@ export function useDeleteVehicleMutation(vehicleId) {
       // The entity is gone: drop its entry instead of leaving a tombstone behind.
       queryClient.removeQueries({ queryKey: vehicleKeys.detail(vehicleId) });
       queryClient.invalidateQueries({ queryKey: vehicleKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: vehicleKeys.stats() });
+      queryClient.invalidateQueries({ queryKey: vehicleKeys.statsAll() });
       queryClient.invalidateQueries({ queryKey: [...vehicleKeys.all, 'similar'] });
     },
   });
